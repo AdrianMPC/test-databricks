@@ -22,7 +22,7 @@ try:
         host=HOST,
         port=PORT,
         dbname=DBNAME,
-        pool_mode= transaction
+        pool_mode= "transaction"
     )
     print("Connection successful!")
     
