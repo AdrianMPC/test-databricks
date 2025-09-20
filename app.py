@@ -108,7 +108,7 @@ if model is not None:
                 )
 
             conn.close()
-            st.info(f"✅ Registro guardado con id: `{row_id}`")
+            st.info(f"Registro guardado con id: `{row_id}`")
 
         except Exception as e:
             st.error(f"Error en predicción/guardado: {e}")
