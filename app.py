@@ -21,7 +21,7 @@ try:
         password=PASSWORD,
         host=HOST,
         port=PORT,
-        dbname=DBNAME
+        dbname=DBNAME,
         pool_mode= transaction
     )
     print("Connection successful!")
