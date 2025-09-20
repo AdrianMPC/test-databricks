@@ -3,6 +3,8 @@ import joblib
 import pickle
 import numpy as np
 import psycopg2
+from uuid import uuid4
+
 # Fetch variables ME ENCANTA NO USAR ENV 
 USER = "postgres.jecjnxivfbwsvjzsrymi" #os.getenv("user")
 PASSWORD = "pinado132"# os.getenv("password")
@@ -69,50 +71,40 @@ if model is not None:
     petal_length = st.number_input("Longitud del Pétalo (cm)", min_value=0.0, max_value=10.0, value=4.0, step=0.1)
     petal_width = st.number_input("Ancho del Pétalo (cm)", min_value=0.0, max_value=10.0, value=1.0, step=0.1)
     
-    # Botón de predicción
+   # Botón de predicción
     if st.button("Predecir Especie"):
         try:
             # Preparar datos
             features = np.array([[sepal_length, sepal_width, petal_length, petal_width]])
-            
-            # Estandarizar
             features_scaled = scaler.transform(features)
-            
-            # Predecir
+
+            # Predicción
             prediction = model.predict(features_scaled)[0]
             probabilities = model.predict_proba(features_scaled)[0]
-            
-            # Mostrar resultado
             target_names = model_info['target_names']
             predicted_species = target_names[prediction]
-            
+
+            # Mostrar resultado
             st.success(f"Especie predicha: **{predicted_species}**")
             st.write(f"Confianza: **{max(probabilities):.1%}**")
-            
-            # Mostrar todas las probabilidades
             st.write("Probabilidades:")
             for species, prob in zip(target_names, probabilities):
                 st.write(f"- {species}: {prob:.1%}")
 
+            # Guardar en DB
             conn = psycopg2.connect(
-                    user=USER,
-                    password=PASSWORD,
-                    host=HOST,
-                    port=PORT,
-                    dbname=DBNAME
-                )
-            
-            with conn.cursor() as cur:
+                user=USER, password=PASSWORD, host=HOST, port=PORT, dbname=DBNAME
+            )
+            conn.autocommit = True  # evita tener que hacer conn.commit()
+            with conn, conn.cursor() as cur:
                 row_id = str(uuid4())
-                insert_sql = """
+                cur.execute("""
                     INSERT INTO modelo_data
                     (id, sepal_length, sepal_width, petal_length, petal_width, predicted_species)
                     VALUES (%s, %s, %s, %s, %s, %s);
-                """
-                cur.execute(
-                    insert_sql,
-                    (row_id, sepal_length, sepal_width, petal_length, petal_width, predicted_species)
-                )
+                """, (row_id, sepal_length, sepal_width, petal_length, petal_width, predicted_species))
+            conn.close()
             st.info(f"✅ Registro guardado con id: `{row_id}`")
+
         except Exception as e:
             st.error(f"Error en predicción/guardado: {e}")
