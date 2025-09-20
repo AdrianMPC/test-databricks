@@ -95,14 +95,18 @@ if model is not None:
             conn = psycopg2.connect(
                 user=USER, password=PASSWORD, host=HOST, port=PORT, dbname=DBNAME
             )
-            conn.autocommit = True  # evita tener que hacer conn.commit()
             with conn, conn.cursor() as cur:
                 row_id = str(uuid4())
-                cur.execute("""
+                insert_sql = """
                     INSERT INTO modelo_data
-                    (id, sepal_length, sepal_width, petal_length, petal_width, predicted_species)
+                    (id, longitud_sepalo, ancho_sepalo, longitud_petalo, ancho_petalo, prediccion)
                     VALUES (%s, %s, %s, %s, %s, %s);
-                """, (row_id, sepal_length, sepal_width, petal_length, petal_width, predicted_species))
+                """
+                cur.execute(
+                    insert_sql,
+                    (row_id, sepal_length, sepal_width, petal_length, petal_width, predicted_species)
+                )
+
             conn.close()
             st.info(f"✅ Registro guardado con id: `{row_id}`")
 
