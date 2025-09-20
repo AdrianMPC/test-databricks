@@ -7,7 +7,7 @@ from uuid import uuid4
 
 # Fetch variables ME ENCANTA NO USAR ENV 
 USER = "postgres.jecjnxivfbwsvjzsrymi" #os.getenv("user")
-PASSWORD = "pinado132"# os.getenv("password")
+PASSWORD = "pinadodatabase132"# os.getenv("password")
 HOST = "aws-1-us-east-2.pooler.supabase.com" #os.getenv("host")
 PORT = 6543 #os.getenv("port")
 DBNAME = "postgres" #os.getenv("dbname")
