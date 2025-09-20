@@ -71,24 +71,48 @@ if model is not None:
     
     # Botón de predicción
     if st.button("Predecir Especie"):
-        # Preparar datos
-        features = np.array([[sepal_length, sepal_width, petal_length, petal_width]])
-        
-        # Estandarizar
-        features_scaled = scaler.transform(features)
-        
-        # Predecir
-        prediction = model.predict(features_scaled)[0]
-        probabilities = model.predict_proba(features_scaled)[0]
-        
-        # Mostrar resultado
-        target_names = model_info['target_names']
-        predicted_species = target_names[prediction]
-        
-        st.success(f"Especie predicha: **{predicted_species}**")
-        st.write(f"Confianza: **{max(probabilities):.1%}**")
-        
-        # Mostrar todas las probabilidades
-        st.write("Probabilidades:")
-        for species, prob in zip(target_names, probabilities):
-            st.write(f"- {species}: {prob:.1%}")
+        try:
+            # Preparar datos
+            features = np.array([[sepal_length, sepal_width, petal_length, petal_width]])
+            
+            # Estandarizar
+            features_scaled = scaler.transform(features)
+            
+            # Predecir
+            prediction = model.predict(features_scaled)[0]
+            probabilities = model.predict_proba(features_scaled)[0]
+            
+            # Mostrar resultado
+            target_names = model_info['target_names']
+            predicted_species = target_names[prediction]
+            
+            st.success(f"Especie predicha: **{predicted_species}**")
+            st.write(f"Confianza: **{max(probabilities):.1%}**")
+            
+            # Mostrar todas las probabilidades
+            st.write("Probabilidades:")
+            for species, prob in zip(target_names, probabilities):
+                st.write(f"- {species}: {prob:.1%}")
+
+            conn = psycopg2.connect(
+                    user=USER,
+                    password=PASSWORD,
+                    host=HOST,
+                    port=PORT,
+                    dbname=DBNAME
+                )
+            
+            with conn.cursor() as cur:
+                row_id = str(uuid4())
+                insert_sql = """
+                    INSERT INTO modelo_data
+                    (id, sepal_length, sepal_width, petal_length, petal_width, predicted_species)
+                    VALUES (%s, %s, %s, %s, %s, %s);
+                """
+                cur.execute(
+                    insert_sql,
+                    (row_id, sepal_length, sepal_width, petal_length, petal_width, predicted_species)
+                )
+            st.info(f"✅ Registro guardado con id: `{row_id}`")
+        except Exception as e:
+            st.error(f"Error en predicción/guardado: {e}")
